@@ -1,0 +1,8 @@
+direccion buffer -> a1 -> t1
+direccion buffer2 -> a0 -> //
+direccion buffer 3 -> a0
+
+ascii separador -> s1
+# caracteres -> s7
+
+direccion buffer + #caracteres -> t2
