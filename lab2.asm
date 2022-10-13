@@ -14,7 +14,8 @@ vector1: .space 4000	#Guardo las direcciones de cada frase (primer caracter)
 
 .text
 
-la $s3, vector1
+la $s3, vector1		#Guardo el vector1 en s3
+addi $sp, $sp, -4000	#Reservo espacio en stack
 
 #Syscall Open File (entrada)
 li $v0, 13				#Seleccionar el syscall (abrir archivo)
@@ -33,9 +34,10 @@ la $a1, buffer				#todo lo que se lee queda en Buffer y se guarda en $a1 #la dir
 li $a2, 4000				#tamaño maximo caracteres en el texto
 syscall					#Retorna variable con numero -> cuantas letras hay en el txt
 move $s1, $v0				# $s1 guarda cuántas letras hay en el texto
-move $t1, $a1
-#PREGUNTAR AL USUARIO
+move $t1, $a1				#Copio la dirección del buffer a t1
+sw $a1, 0($sp)
 
+#PREGUNTAR AL USUARIO
 li $v0, 4				#Seleccionar el syscall
 la $a0, buffer2				#Dirección del texto a mostrar
 syscall
@@ -50,7 +52,7 @@ move $a3, $a0
 
 lb $s2, 0($a0)				#Guardo el ASCII del caracter separador en los registros
 move $a2, $t1				#Muevo la dirección del buffer en a2
-move $a1, $t1				#Muevo la dirección del buffer en a2
+move $a1, $t1				#Muevo la dirección del buffer a t1
 add $a1, $a1, $s1			#Le sumo el # de caracteres al buffer para que no se sobreescriba encima
 
 for:
@@ -63,19 +65,23 @@ suma:
 addi $a1, $a1, 1		#Avanzo en el espacio en memoria para escribir
 addi $a2, $a2, 1		#Avanzo en el texto
 addi $t0, $t0, 1		#Contador
-beq $s0, $s2, contador_frases
-bne $s1, $t0, for
-
+beq $s0, $s2, contador_frases	#Si el caracter leido es punto, se cuenta una frase
+bne $s1, $t0, for		#Compara el contador con el # total de caracteres
 
 contador_frases:
-addi $t2, $t2, 1
-beq $s1, $t0, Exit
+addi $t2, $t2, 1		#+1 frase
+jal for_stack
+beq $s1, $t0, Exit		#Compara si ya se leyeron todos los caracteres del texto
 j for
 
-#guardar_direccion:
-#la $a2, 0($s3)
-#addi $s3, $s3, 1
-#jr $ra
+for_stack:
+addi $sp, $sp, 4
+addi $a2, $a2, 1
+sw $a2, 0($sp)
+lw $s5, 0($sp)
+sub $a2, $a2, 1
+jr $ra
+
 Exit:
 #Syscall Open File (salida)
 li $v0, 13				#Seleccionar el syscall
