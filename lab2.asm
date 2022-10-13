@@ -1,7 +1,7 @@
 .data
-archivo_entrada: .asciiz "fraseseningles.txt"
+archivo_entrada: .asciiz "mips/fraseseningles.txt"
 
-archivo_salida:  .asciiz "frasesordenadaseningles.txt"
+archivo_salida:  .asciiz "mips/frasesordenadaseningles.txt"
 
 buffer: .space 4000	#Buffer guarda lo que hay en el archivo texto
 
@@ -55,26 +55,28 @@ add $a1, $a1, $s1			#Le sumo el # de caracteres al buffer para que no se sobrees
 
 for:
 lb $s0, 0($a2)
-jal guardar_direccion
+#jal guardar_direccion
 sb $s0, 0($a1)
 j suma
 
 suma:
-addi $a1, $a1, 1
-addi $a2, $a2, 1
-addi $t0, $t0, 1
+addi $a1, $a1, 1		#Avanzo en el espacio en memoria para escribir
+addi $a2, $a2, 1		#Avanzo en el texto
+addi $t0, $t0, 1		#Contador
 beq $s0, $s2, contador_frases
 bne $s1, $t0, for
 
+
 contador_frases:
 addi $t2, $t2, 1
+beq $s1, $t0, Exit
 j for
 
-guardar_direccion:
-la $a2, 0($s3)
-addi $s3, $s3, 1
-jr $ra
-
+#guardar_direccion:
+#la $a2, 0($s3)
+#addi $s3, $s3, 1
+#jr $ra
+Exit:
 #Syscall Open File (salida)
 li $v0, 13				#Seleccionar el syscall
 la $a0, archivo_salida			#Guardo el buffer donde tengo el texto
