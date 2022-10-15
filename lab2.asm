@@ -16,6 +16,7 @@ vector1: .space 4000	#Guardo las direcciones de cada frase (primer caracter)
 
 la $s3, vector1		#Guardo el vector1 en s3
 addi $sp, $sp, -4000	#Reservo espacio en stack
+move $t3, $sp		#Guardo la dirección principal del stack en t3
 
 #Syscall Open File (entrada)
 li $v0, 13				#Seleccionar el syscall (abrir archivo)
@@ -35,7 +36,8 @@ li $a2, 4000				#tamaño maximo caracteres en el texto
 syscall					#Retorna variable con numero -> cuantas letras hay en el txt
 move $s1, $v0				# $s1 guarda cuántas letras hay en el texto
 move $t1, $a1				#Copio la dirección del buffer a t1
-sw $a1, 0($sp)
+
+sw $a1, 0($sp)				#Guardo la direccion del primer caracter de la primer frase en stack
 
 #PREGUNTAR AL USUARIO
 li $v0, 4				#Seleccionar el syscall
@@ -48,41 +50,48 @@ li $v0, 8				#Seleccionar el syscall
 la $a0, buffer3				#Se guarda lo que el usuario ingresó
 li $a1, 3				#Se guarda el máximo número de caracteteres
 syscall
-move $a3, $a0
+move $a3, $a0				#Copio a0 en a3
 
+##########################################
 lb $s2, 0($a0)				#Guardo el ASCII del caracter separador en los registros
 move $a2, $t1				#Muevo la dirección del buffer en a2
 move $a1, $t1				#Muevo la dirección del buffer a t1
 add $a1, $a1, $s1			#Le sumo el # de caracteres al buffer para que no se sobreescriba encima
 
 for:
-lb $s0, 0($a2)
-#jal guardar_direccion
-sb $s0, 0($a1)
-j suma
+lb $s0, 0($a2)				#Guardo en registro el caracter leído
+sb $s0, 0($a1)				#Guardo en memoria el caracter leido
+j suma					#Salto hacia la función suma
 
 suma:
 addi $a1, $a1, 1		#Avanzo en el espacio en memoria para escribir
 addi $a2, $a2, 1		#Avanzo en el texto
 addi $t0, $t0, 1		#Contador
-beq $s0, $s2, contador_frases	#Si el caracter leido es punto, se cuenta una frase
+beq $s0, $s2, contador_frases	#Si el caracter leido es punto, salto a la funcion que cuenta el numero de frases
 bne $s1, $t0, for		#Compara el contador con el # total de caracteres
 
 contador_frases:
 addi $t2, $t2, 1		#+1 frase
-jal for_stack
-beq $s1, $t0, Exit		#Compara si ya se leyeron todos los caracteres del texto
-j for
+jal for_stack			#salto al ciclo for para el stack
+beq $s1, $t0, comparar		#Compara si ya se leyeron todos los caracteres del texto
+j for				#Regreso al ciclo for
 
 for_stack:
-addi $sp, $sp, 4
-addi $a2, $a2, 1
-sw $a2, 0($sp)
-lw $s5, 0($sp)
-sub $a2, $a2, 1
+addi $sp, $sp, 4		#Avanzo 4 posiciones en la pila
+addi $a2, $a2, 1		#Muevo el apuntador un byte hacia el caracter siguiente al punto (primero de la frase siguiente)
+sw $a2, 0($sp)			#Guardo en stack la dirección del caracter siguiente al punto
+sub $a2, $a2, 1		#Devuelvo el apuntador
 jr $ra
 
-Exit:
+#Dos contadores, uno para i otro para j, i trae la primer frase, se compara con la j, el ciclo para cuando sea igual al contador de frases t0
+# $t4 contador i se lo sumo a sp para traer la direccion
+# $t5 contador j
+
+comparar:
+
+
+
+
 #Syscall Open File (salida)
 li $v0, 13				#Seleccionar el syscall
 la $a0, archivo_salida			#Guardo el buffer donde tengo el texto
