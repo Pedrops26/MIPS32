@@ -78,20 +78,73 @@ j for				#Regreso al ciclo for
 
 for_stack:
 addi $sp, $sp, 4		#Avanzo 4 posiciones en la pila
-addi $a2, $a2, 1		#Muevo el apuntador un byte hacia el caracter siguiente al punto (primero de la frase siguiente)
+#addi $a2, $a2, 1		#Muevo el apuntador un byte hacia el caracter siguiente al punto (primero de la frase siguiente)
 sw $a2, 0($sp)			#Guardo en stack la dirección del caracter siguiente al punto
-sub $a2, $a2, 1		#Devuelvo el apuntador
+#sub $a2, $a2, 1			#Devuelvo el apuntador
 jr $ra
 
 #Dos contadores, uno para i otro para j, i trae la primer frase, se compara con la j, el ciclo para cuando sea igual al contador de frases t0
 # $t4 contador i se lo sumo a sp para traer la direccion
 # $t5 contador j
 
-comparar:
+comparar:		#s5 con direccion s0, s6 con direccion s2
+move $a3, $t3		#Pongo en un registro address la dirección del stack
+addi $t3, $t3, 4
+lw $s0, 0($a3)		#Guardo en registro la dirección guardada en la n posición del stack
+move $a3, $t3
+lw $s2, 0($a3)		#Guardo en registro la dirección guardada en la n posición del stack
 
+guardar_char:
+move $a0, $s0
+lb $s5, 0($a0)
+move $a0, $s2
+lb $s6, 0($a0)
 
+bne $s5, $s6, comparar_mayor
+beq $s5, $s6, avanzar_char
 
+avanzar_char:
+addi $s0, $s0, 1
+addi $s2, $s2, 1
+addi $t8, $t8, 1
+j guardar_char
 
+comparar_mayor:
+bgt $s5, $s6, switch	#Si s5 > s6, cambia
+blt $s5, $s6, Exit
+
+switch:
+move $t5, $s0
+move $t6, $s2
+move $s0, $t6
+move $s2, $t5
+
+move $sp, $a3
+sw $s0, 0($sp)
+sw $s2, 4($sp)
+
+ret_y_escribir:
+la $a1, buffer
+move $s0, $a0
+bne $t8, $zero, retroceder_char
+beq $t8, $zero, escribir
+
+retroceder_char:
+sub $a0, $a0, 1
+sub $a1, $a1, 1
+sub $t8, $t8, 1
+bne $t8, $zero, retroceder_char
+
+escribir:
+lb $s5, 0($a0)
+sb $s5, 0($a1)
+addi $a0, $a0, 1
+addi $a1, $a1, 1
+addi $t4, $t4, 1
+beq $t4, $s1, Exit
+j escribir
+
+Exit:
 #Syscall Open File (salida)
 li $v0, 13				#Seleccionar el syscall
 la $a0, archivo_salida			#Guardo el buffer donde tengo el texto

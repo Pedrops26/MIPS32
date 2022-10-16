@@ -1,8 +1,16 @@
-direccion buffer -> a1 -> t1
-direccion buffer2 -> a0 -> //
-direccion buffer 3 -> a0
+t3 -> direccion del stack
+###################################
 
-ascii separador -> s1
-# caracteres -> s7
+a3 -> direccion 1 (stack original)
+s0 -> direccion primer caracter frase 1
+a0 -> direccion primer caracter frase 1
+s5 -> primer caracter frase 1
 
-direccion buffer + #caracteres -> t2
+t3 -> avanzo con el apuntador +4
+
+a3 -> direccion 2 apuntador stack
+s2 -> direccion primer caracter frase 2
+a0 -> direccion primer caracter frase 2
+s6 -> primer caracter frase 2
+
+
